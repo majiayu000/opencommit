@@ -37,7 +37,8 @@ export enum CONFIG_KEYS {
   OCO_HOOK_AUTO_UNCOMMENT = 'OCO_HOOK_AUTO_UNCOMMENT',
   OCO_REASONING_MAX_TOKENS = 'OCO_REASONING_MAX_TOKENS',
   OCO_REASONING = 'OCO_REASONING',
-  OCO_OLLAMA_THINK = 'OCO_OLLAMA_THINK'
+  OCO_OLLAMA_THINK = 'OCO_OLLAMA_THINK',
+  OCO_OLLAMA_TIMEOUT = 'OCO_OLLAMA_TIMEOUT'
 }
 
 export enum CONFIG_MODES {
@@ -677,6 +678,12 @@ const validateConfig = (
   }
 };
 
+const validatePositiveInteger = (key: CONFIG_KEYS, value: unknown) => {
+  const parsedValue = parsePositiveInteger(value);
+  validateConfig(key, parsedValue !== undefined, 'Must be a positive integer');
+  return parsedValue!;
+};
+
 const parsePositiveInteger = (value: unknown): number | undefined => {
   if (typeof value === 'number') {
     return Number.isSafeInteger(value) && value > 0 ? value : undefined;
@@ -930,13 +937,7 @@ export const configValidators = {
     return value;
   },
   [CONFIG_KEYS.OCO_REASONING_MAX_TOKENS](value: any) {
-    const parsedValue = parsePositiveInteger(value);
-    validateConfig(
-      CONFIG_KEYS.OCO_REASONING_MAX_TOKENS,
-      parsedValue !== undefined,
-      'Must be a positive integer'
-    );
-    return parsedValue!;
+    return validatePositiveInteger(CONFIG_KEYS.OCO_REASONING_MAX_TOKENS, value);
   },
 
   [CONFIG_KEYS.OCO_OLLAMA_THINK](value: any) {
@@ -945,6 +946,10 @@ export const configValidators = {
       typeof value === 'boolean',
       'Must be true or false'
     );
+  },
+
+  [CONFIG_KEYS.OCO_OLLAMA_TIMEOUT](value: any) {
+    return validatePositiveInteger(CONFIG_KEYS.OCO_OLLAMA_TIMEOUT, value);
   }
 };
 
@@ -1018,6 +1023,7 @@ export type ConfigType = {
   [CONFIG_KEYS.OCO_REASONING]?: boolean;
   [CONFIG_KEYS.OCO_REASONING_MAX_TOKENS]?: number;
   [CONFIG_KEYS.OCO_OLLAMA_THINK]?: boolean;
+  [CONFIG_KEYS.OCO_OLLAMA_TIMEOUT]?: number;
 };
 
 export const defaultConfigPath = pathJoin(homedir(), '.opencommit');
@@ -1135,6 +1141,7 @@ const getEnvConfig = (env: NodeJS.ProcessEnv) => {
     OCO_OMIT_SCOPE: parseConfigVarValue(env.OCO_OMIT_SCOPE),
     OCO_REASONING_MAX_TOKENS: parseConfigVarValue(env.OCO_REASONING_MAX_TOKENS),
     OCO_REASONING: parseConfigVarValue(env.OCO_REASONING),
+    OCO_OLLAMA_TIMEOUT: parseConfigVarValue(env.OCO_OLLAMA_TIMEOUT),
 
     OCO_GITPUSH: parseConfigVarValue(env.OCO_GITPUSH), // todo: deprecate
     OCO_HOOK_AUTO_UNCOMMENT:
@@ -1539,21 +1546,12 @@ function printConfigKeyHelp(param) {
 
   const details = getConfigKeyDetails(param as CONFIG_KEYS);
 
-  let desc = details.description;
-  let defaultValue = undefined;
-  if (param in DEFAULT_CONFIG) {
-    defaultValue = DEFAULT_CONFIG[param];
-  }
+  const defaultValue = DEFAULT_CONFIG[param];
 
   console.log(chalk.bold(`\n${param}:`));
-  console.log(chalk.gray(`  Description: ${desc}`));
+  console.log(chalk.gray(`  Description: ${details.description}`));
   if (defaultValue !== undefined) {
-    // Print booleans and numbers as-is, strings without quotes
-    if (typeof defaultValue === 'string') {
-      console.log(chalk.gray(`  Default: ${defaultValue}`));
-    } else {
-      console.log(chalk.gray(`  Default: ${defaultValue}`));
-    }
+    console.log(chalk.gray(`  Default: ${defaultValue}`));
   }
 
   if (Array.isArray(details.values)) {

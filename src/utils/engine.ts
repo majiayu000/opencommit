@@ -46,7 +46,8 @@ export function getEngine(config = getConfig()): AiEngine {
     case OCO_AI_PROVIDER_ENUM.OLLAMA:
       return new OllamaEngine({
         ...DEFAULT_CONFIG,
-        ollamaThink: config.OCO_OLLAMA_THINK
+        ollamaThink: config.OCO_OLLAMA_THINK,
+        ollamaTimeout: config.OCO_OLLAMA_TIMEOUT
       });
 
     case OCO_AI_PROVIDER_ENUM.LLAMACPP:

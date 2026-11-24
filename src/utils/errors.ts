@@ -68,6 +68,29 @@ export class ServiceUnavailableError extends Error {
   }
 }
 
+// Error type for requests that time out or cannot connect to the endpoint
+export class ProviderConnectionError extends Error {
+  public readonly provider: string;
+  public readonly baseURL: string;
+  public readonly timedOut: boolean;
+  public readonly suggestion: string;
+
+  constructor(
+    provider: string,
+    baseURL: string,
+    timedOut: boolean,
+    message: string,
+    suggestion: string
+  ) {
+    super(message);
+    this.name = 'ProviderConnectionError';
+    this.provider = provider;
+    this.baseURL = baseURL;
+    this.timedOut = timedOut;
+    this.suggestion = suggestion;
+  }
+}
+
 // Error type for authentication failures
 export class AuthenticationError extends Error {
   public readonly provider: string;
@@ -491,6 +514,15 @@ export function formatUserFriendlyError(
 
   if (error instanceof ModelNotFoundError) {
     return formatModelNotFound(provider, error.modelName);
+  }
+
+  if (error instanceof ProviderConnectionError) {
+    return {
+      title: error.timedOut ? 'Request Timed Out' : 'Connection Failed',
+      message: error.message,
+      helpUrl: null,
+      suggestion: error.suggestion
+    };
   }
 
   // Detect error type from raw errors

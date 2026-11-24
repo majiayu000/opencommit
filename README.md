@@ -74,6 +74,12 @@ oco config set OCO_API_URL='http://192.168.1.10:11434/api/chat'
 
 where 192.168.1.10 is example of endpoint URL, where you have ollama set up.
 
+OpenCommit waits up to 120 seconds for each Ollama response. If the host is unreachable or stops responding, the command fails with the configured URL instead of waiting forever. For slow models or hardware, increase the limit in milliseconds:
+
+```sh
+oco config set OCO_OLLAMA_TIMEOUT=300000
+```
+
 #### Troubleshooting Ollama IPv6/IPv4 Connection Fix
 
 If you encounter issues with Ollama, such as the error
@@ -157,6 +163,7 @@ OCO_TOKENS_MAX_INPUT=<max model token limit (default: 4096)>
 OCO_TOKENS_MAX_OUTPUT=<max response tokens (default: 500)>
 OCO_REASONING=<override reasoning-model auto-detection with true or false; omitted by default>
 OCO_REASONING_MAX_TOKENS=<max completion token budget for reasoning models, including hidden reasoning tokens (default: 1000)>
+OCO_OLLAMA_TIMEOUT=<milliseconds to wait for each Ollama response (default: 120000)>
 OCO_DESCRIPTION=<postface a message with ~3 sentences description of the changes>
 OCO_EMOJI=<boolean, add GitMoji>
 OCO_EMOJI_POSITION_BEFORE_DESCRIPTION=<boolean, place GitMoji immediately before the commit subject; default: false>
