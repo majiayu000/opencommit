@@ -1530,6 +1530,12 @@ function getConfigKeyDetails(key) {
           'Max completion token budget for reasoning models, including hidden reasoning tokens',
         values: ['Any positive integer']
       };
+    case CONFIG_KEYS.OCO_OLLAMA_TIMEOUT:
+      return {
+        description:
+          'Milliseconds to wait for each Ollama request before failing (default: 120000)',
+        values: ['Any positive integer (milliseconds)']
+      };
     default:
       return {
         description: 'String value',
@@ -1574,20 +1580,12 @@ function printAllConfigHelp() {
   console.log(chalk.bold('Available config parameters:'));
   for (const key of Object.values(CONFIG_KEYS).sort()) {
     const details = getConfigKeyDetails(key);
-    // Try to get the default value from DEFAULT_CONFIG
-    let defaultValue = undefined;
-    if (key in DEFAULT_CONFIG) {
-      defaultValue = DEFAULT_CONFIG[key];
-    }
+    const defaultValue = DEFAULT_CONFIG[key];
 
     console.log(chalk.bold(`\n${key}:`));
     console.log(chalk.gray(`  Description: ${details.description}`));
     if (defaultValue !== undefined) {
-      if (typeof defaultValue === 'string') {
-        console.log(chalk.gray(`  Default: ${defaultValue}`));
-      } else {
-        console.log(chalk.gray(`  Default: ${defaultValue}`));
-      }
+      console.log(chalk.gray(`  Default: ${defaultValue}`));
     }
   }
   console.log(
